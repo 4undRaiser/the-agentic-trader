@@ -3,8 +3,7 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
 import {
-  getTrendingTokensWithDetails,
-  analyzeTrendingTokensGrowthPotential,
+  getTrendingTokensWithAnalysis,
 } from "./tools/token-finder-tools";
 
 export const tokenFinderAgent = new Agent({
@@ -27,11 +26,18 @@ export const tokenFinderAgent = new Agent({
 
     IMPORTANT WORKFLOW - ALWAYS FOLLOW THIS SEQUENCE:
     When asked to find trending tokens with growth potential, you MUST:
-    1. FIRST call "Get Trending Tokens With Details" to fetch high-volume trending tokens with comprehensive details
-    2. THEN call "Analyze Trending Tokens Growth Potential" and pass the result from step 1 as the "trendingTokensWithDetails" input parameter
-    3. Return the final analyzed results from step 2
+    1. Call "Get Trending Tokens With Analysis" to fetch and analyze trending tokens in a single operation
+    2. This tool will automatically:
+       - Fetch trending tokens from CoinGecko
+       - Analyze their growth potential using multiple metrics
+       - Filter tokens based on minimum score requirements
+       - Return only the best token addresses with highest growth potential
 
-    This two-step process ensures you get the most accurate and comprehensive analysis of token growth potential.
+    The tool parameters you can adjust:
+    - limit: Number of top tokens to return (default: 10)
+    - minScore: Minimum growth potential score required (default: 20)
+    - days: Historical data period for analysis (default: 1)
+    - evm_only: Only return ERC-20 tokens (default: true)
 
     For each recommended token, provide:
     1. Current price and market data
@@ -54,8 +60,7 @@ export const tokenFinderAgent = new Agent({
   `,
   model: openai("gpt-4o-mini"),
   tools: {
-    getTrendingTokensWithDetails,
-    analyzeTrendingTokensGrowthPotential,
+    getTrendingTokensWithAnalysis,
   },
   memory: new Memory({
     storage: new LibSQLStore({
